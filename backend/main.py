@@ -31,23 +31,24 @@ class Lexer:
         self.content = self.content[chop_till_index:]
         return token
 
+    def chop_while(self, predicate):
+        index = 0
+        while index < len(self.content) and predicate(self.content[index]):
+            index += 1
+        token = self.chop_content(index)
+        return token
+
     def next_token(self):
         self.trim_left()
         if len(self.content) == 0:
             raise StopIteration
 
         if self.content[0].isnumeric():
-            index = 0
-            while index < len(self.content) and self.content[index].isnumeric():
-                index += 1
-            token = self.chop_content(index)
+            token = self.chop_while(str.isnumeric)
             return token
 
         if self.content[0].isalpha():
-            index = 0
-            while index < len(self.content) and self.content[index].isalpha():
-                index += 1
-            token = self.chop_content(index)
+            token = self.chop_while(str.isalpha)
             return token
 
         token = self.chop_content(1)
@@ -69,6 +70,7 @@ class LexerIterator:
 
 
 def read_xml_file(file_path):
+    # print(f"In read_xml_file for:: {file_path}")
     handler = FileHandler()
     try:
         with open(file_path, "r") as file:
