@@ -2,9 +2,9 @@ from xml.sax import parse
 from xml.sax.handler import ContentHandler
 import io
 import os
-import itertools
+import json
 
-all_documents = {}  # dict[str, dict[str, int]]
+
 class FileHandler(ContentHandler):
 
     def __init__(self):
@@ -84,22 +84,49 @@ def index_document(doc_content: str) -> dict[str, int]:
     pass
 
 def process():
-    file_path = "../docs.gl/gl4/glClear.xhtml"
     file_path_1 = "../docs.gl/gl4/glVertexAttribDivisor.xhtml"
     dir_path = "../docs.gl/gl4"
+    term_freq_index = {}  # Dict of file_path and tf dict from the document
     with os.scandir(dir_path) as itr:
         for entry in itr:
-            # print(f"FileName:: {entry.path}.. isFile:: {entry.is_file()}")
-            # content = read_xml_file(entry.path)
-            # print(f"Final string buffer...{list(content.getvalue())}.. {content.getvalue()}")
-            break
+            print(f"Indexing file:: {entry.path} ...")
+            # Step 1
+            content = read_xml_file(entry.path)
+            # Step 2
+            lexer = Lexer(list(content.getvalue()))
+            # Step 3
+            tf = {}
+            for item in lexer:
+                term = "".join(item).upper()
+                val = tf.get(term, 0)
+                tf[term] = (val + 1)
+            # Step 4
+            term_freq_index[entry.path] = tf
 
-    content = read_xml_file(file_path_1)
-    lexer = Lexer(list(content.getvalue()))
-    for item in lexer:
-        print("".join(item).upper())
+    index_file = "index.json"
+    with open(index_file, "w") as json_file:
+        json.dump(term_freq_index, json_file)
+
+    # content = read_xml_file(file_path_1)
+    # lexer = Lexer(list(content.getvalue()))
+    # for item in lexer:
+    #     term = "".join(item).upper()
+    #     val = tf.get(term, 0)
+    #     tf[term] = (val + 1)
+    #
+    # sorted_dict = dict(sorted(tf.items(), key=lambda item: item[1], reverse=True)[:10]) # Take top 10 entries
+    # for key, value in sorted_dict.items():
+    #     print(f"{key} => {value}")
+
+
+def process_1():
+    index_file = "index.json"
+    with open(index_file, "r") as json_file:
+        term_freq_index = json.load(json_file)
+    print(f"index.json contains {len(term_freq_index)} files")
 
 
 if __name__ == "__main__":
     print(f"OK")
-    process()
+    # process()
+    process_1()
