@@ -4,6 +4,7 @@ import io
 import os
 import json
 import argparse
+import math
 from http.server import HTTPServer, BaseHTTPRequestHandler
 
 global_term_freq_index = {}
@@ -50,7 +51,7 @@ class Lexer:
             return token
 
         if self.content[0].isalpha():
-            token = self.chop_while(str.isalpha).upper()
+            token = self.chop_while(str.isalpha)
             return token
 
         token = self.chop_content(1)
@@ -81,6 +82,19 @@ def read_xml_file(file_path):
         print(f"Got error {e}")
         raise e
     return handler.string_buffer
+
+def tf(term, term_freq_dict):
+    all_sum = 0
+    for _, value in term_freq_dict.items():
+        all_sum += value
+
+    return float(term_freq_dict.get(term, 0) / all_sum)
+
+
+def idf(term):
+    total_documents = len(global_term_freq_index)
+    doc_counts = max(sum(1 for value in global_term_freq_index.values() if term in value), 1)
+    return math.log10(total_documents / doc_counts)
 
 
 def index(args):
@@ -144,13 +158,22 @@ class OurSimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             query_string = post_body.decode('utf-8')
             print(f"query_string = {query_string}")
             print(f"Checking.. index docs = {len(global_term_freq_index)}")
-            query_lexer = Lexer(query_string)
-            for token in query_lexer:
-                print(f"token={token}")
-
+            tf_for_file = []
+            for path, tf_index in global_term_freq_index.items():
+                rank = 0
+                for token in Lexer(query_string):
+                    rank += (tf(token.upper(), tf_index) * idf(token.upper()))
+                    # print(f"Token={token.upper()} and rank_term = {tf(token.upper(), tf_index) * idf(token.upper())}")
+                # print(f"tf for path={path} => {total_tf}")
+                tf_for_file.append((path, rank))
+            sorted_tf = sorted(tf_for_file, key=lambda x: x[1])
+            sorted_tf.reverse()
+            for row in sorted_tf[:10]:
+                print(row)
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
+
 
 def serve(args):
     print(f"In serve.. and got index_file:: {args.index_file}")
@@ -160,6 +183,7 @@ def serve(args):
     http_server = HTTPServer(('localhost', 6969), OurSimpleHTTPRequestHandler)
     print(f"Starting to listen at localhost:6969")
     http_server.serve_forever()
+
 
 def main():
     parser = argparse.ArgumentParser(description="Local Search Engine Commands")

@@ -4,5 +4,5 @@ fetch("/api/search", {
   headers: {
     'Content-Type': 'text/plain'
   },
-  body: "bind texture, to buffer."
+  body: "glsl function linearly interpolation"
 }).then((response) => console.log(response));
