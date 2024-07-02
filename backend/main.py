@@ -97,25 +97,34 @@ def idf(term):
     return math.log10(total_documents / doc_counts)
 
 
+def iterate_dir(path, term_freq_index):
+    print(f"Iterate for folder= {path}")
+    with os.scandir(path) as itr:
+        for entry in itr:
+            if entry.is_dir():
+                iterate_dir(entry.path, term_freq_index)
+            elif entry.is_file():
+                if "xhtml" in entry.path:
+                    print(f"Indexing file= {entry.path}")
+                    # Step 1
+                    content = read_xml_file(entry.path)
+                    # Step 2
+                    lexer = Lexer(list(content.getvalue()))
+                    # Step 3
+                    tf = {}
+                    for item in lexer:
+                        term = "".join(item).upper()
+                        val = tf.get(term, 0)
+                        tf[term] = (val + 1)
+                    # Step 4
+                    term_freq_index[entry.path] = tf
+
+
+
 def index(args):
     print(f"In index.. for {args.folder_name}")
     term_freq_index = {}  # Dict of file_path and tf dict from the document
-    with os.scandir(args.folder_name) as itr:
-        for entry in itr:
-            print(f"Indexing file:: {entry.path} ...")
-            # Step 1
-            content = read_xml_file(entry.path)
-            # Step 2
-            lexer = Lexer(list(content.getvalue()))
-            # Step 3
-            tf = {}
-            for item in lexer:
-                term = "".join(item).upper()
-                val = tf.get(term, 0)
-                tf[term] = (val + 1)
-            # Step 4
-            term_freq_index[entry.path] = tf
-
+    iterate_dir(args.folder_name, term_freq_index)
     index_file = "index.json"
     with open(index_file, "w") as json_file:
         json.dump(term_freq_index, json_file)
@@ -157,7 +166,6 @@ class OurSimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             post_body = self.rfile.read(int(header_len))
             query_string = post_body.decode('utf-8')
             print(f"query_string = {query_string}")
-            print(f"Checking.. index docs = {len(global_term_freq_index)}")
             tf_for_file = []
             for path, tf_index in global_term_freq_index.items():
                 rank = 0
@@ -168,11 +176,21 @@ class OurSimpleHTTPRequestHandler(BaseHTTPRequestHandler):
                 tf_for_file.append((path, rank))
             sorted_tf = sorted(tf_for_file, key=lambda x: x[1])
             sorted_tf.reverse()
+            output = []
             for row in sorted_tf[:10]:
                 print(row)
+                output.append(row[0])
+
+            response = {
+                "docs": output
+            }
+
+            response_json = json.dumps(response)
+
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
             self.end_headers()
+            self.wfile.write(response_json.encode())
 
 
 def serve(args):
@@ -180,6 +198,7 @@ def serve(args):
     with open(args.index_file, "r") as json_file:
         global global_term_freq_index
         global_term_freq_index = json.load(json_file)
+    print(f"Got.. index docs = {len(global_term_freq_index)}")
     http_server = HTTPServer(('localhost', 6969), OurSimpleHTTPRequestHandler)
     print(f"Starting to listen at localhost:6969")
     http_server.serve_forever()
