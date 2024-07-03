@@ -1,7 +1,7 @@
 import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
-from backend.model import tf, idf, Model
+from backend.model import Model, compute_tf, compute_idf
 from backend.xml_parser import Lexer
 
 model = Model()
@@ -40,7 +40,7 @@ class OurSimpleHTTPRequestHandler(BaseHTTPRequestHandler):
             for path, tf_index in model.tdfi.items():  # ~ 1600 docs
                 rank = 0
                 for token in Lexer(query_string):
-                    rank += (tf(token.upper(), tf_index) * idf(token.upper(), model))
+                    rank += (compute_tf(token.upper(), tf_index) * compute_idf(token.upper(), model))
                 tf_for_file.append((path, rank))
             sorted_tf = sorted(tf_for_file, key=lambda x: x[1])
             sorted_tf.reverse()

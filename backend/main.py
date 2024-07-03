@@ -30,8 +30,10 @@ def iterate_dir(path, _model: Model):
                         term = "".join(item).upper()
                         val = _tf.get(term, 0)
                         _tf[term] = (val + 1)
-                        _model.df[term] = 1
                     # Step 4
+                    for key in _tf.keys():
+                        val = _model.df.get(key, 0)
+                        _model.df[key] = (val + 1)
                     _model.tdfi[entry.path] = _tf
 
 
