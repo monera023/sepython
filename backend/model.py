@@ -20,12 +20,8 @@ class Model:
         return model
 
 
-def compute_tf(term, term_freq_dict):
-    all_sum = 0
-    for _, value in term_freq_dict.items():
-        all_sum += value
-
-    return float(term_freq_dict.get(term, 0) / all_sum)
+def compute_tf(term, num_of_terms_in_doc, term_freq_dict):
+    return float(term_freq_dict.get(term, 0) / num_of_terms_in_doc)
 
 
 def compute_idf(term, model: Model):

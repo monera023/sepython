@@ -13,7 +13,7 @@ model = Model()
 
 def iterate_dir(path, _model: Model):
     print(f"Iterate for folder= {path}")
-    with os.scandir(path) as itr:
+    with (os.scandir(path) as itr):
         for entry in itr:
             if entry.is_dir():
                 iterate_dir(entry.path, _model)
@@ -26,15 +26,20 @@ def iterate_dir(path, _model: Model):
                     lexer = Lexer(list(content.getvalue()))
                     # Step 3
                     _tf = {}
+                    term_count = 0
                     for item in lexer:
                         term = "".join(item).upper()
                         val = _tf.get(term, 0)
                         _tf[term] = (val + 1)
+                        term_count += 1
                     # Step 4
                     for key in _tf.keys():
                         val = _model.df.get(key, 0)
                         _model.df[key] = (val + 1)
-                    _model.tdfi[entry.path] = _tf
+                    _model.tdfi[entry.path] = {
+                        'index': _tf,
+                        'total_term_counts': term_count
+                    }
 
 
 def index(args):
