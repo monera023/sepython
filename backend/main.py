@@ -5,18 +5,18 @@ import argparse
 from backend.model import Model
 from backend.server import serve
 from backend.xml_parser import read_xml_file, Lexer
-
+import snowball_mod
 global_term_freq_index = {}
 
 model = Model()
 
 
-def iterate_dir(path, _model: Model):
+def iterate_dir(path, _model: Model, stemmer):
     print(f"Iterate for folder= {path}")
     with (os.scandir(path) as itr):
         for entry in itr:
             if entry.is_dir():
-                iterate_dir(entry.path, _model)
+                iterate_dir(entry.path, _model, stemmer)
             elif entry.is_file():
                 if "xhtml" in entry.path:
                     print(f"Indexing file= {entry.path}")
@@ -28,7 +28,9 @@ def iterate_dir(path, _model: Model):
                     _tf = {}
                     term_count = 0
                     for item in lexer:
-                        term = "".join(item).upper()
+                        joined_word = "".join(item)
+                        stemmed_word = stemmer.stemWord(joined_word)
+                        term = stemmed_word.upper()
                         val = _tf.get(term, 0)
                         _tf[term] = (val + 1)
                         term_count += 1
@@ -45,7 +47,8 @@ def iterate_dir(path, _model: Model):
 def index(args):
     print(f"In index.. for {args.folder_name}")
     _model: Model = Model()
-    iterate_dir(args.folder_name, _model)
+    stemmer = snowball_mod.stemmer('english')
+    iterate_dir(args.folder_name, _model, stemmer)
     index_file = "index.json"
     print(f"Starting save of index..")
     import time
