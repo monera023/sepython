@@ -17,9 +17,9 @@ def main():
     parser = argparse.ArgumentParser(description="Local Search Engine Commands")
     subparsers = parser.add_subparsers(help="commands")
 
-    parser_index = subparsers.add_parser('index', help="Index a given folder")
-    parser_index.add_argument('folder_name', type=str, help="Name of the folder to index")
-    parser_index.set_defaults(func=index)
+    # parser_index = subparsers.add_parser('index', help="Index a given folder")
+    # parser_index.add_argument('folder_name', type=str, help="Name of the folder to index")
+    # parser_index.set_defaults(func=index)
 
     parser_search = subparsers.add_parser('search', help="Search a index file based on query")
     parser_search.add_argument('index_file', type=str, help="Index file name")
