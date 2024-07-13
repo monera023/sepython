@@ -11,3 +11,4 @@ Videos done:
 - [x] [Search Engine Ep 2](https://www.youtube.com/watch?v=OYAKjlYm_Ew)
 - [x] [Speeding up Rust Code](https://www.youtube.com/watch?v=b0KIDIOL_i4)
 - [x]  [NLP in Rust](https://www.youtube.com/watch?v=zRZZ8i8YhGU)
+- [x]  [MutiThreading in Rust](https://www.youtube.com/watch?v=9JULWqjM0Wg)
