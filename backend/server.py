@@ -1,6 +1,7 @@
 import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
 
+from backend.main import index
 from backend.model import Model, compute_tf, compute_idf
 from backend.xml_parser import Lexer
 import snowball_mod
@@ -64,8 +65,9 @@ class OurSimpleHTTPRequestHandler(BaseHTTPRequestHandler):
 
 
 def serve(args):
-    print(f"In serve.. and got index_file:: {args.index_file}")
-    with open(args.index_file, "r") as json_file:
+    print(f"In serve.. and got index_file:: {args.folder_name}")
+    index_file = "index.json"
+    with open(index_file, "r") as json_file:
         global model
         model = Model.from_dict(json.load(json_file))
     print(f"Got.. index docs = {len(model.tdfi)}")
